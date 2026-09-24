@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['sanitize-html'],
+  experimental: {
+    serverExternalPackages: ['sanitize-html'],
+  },
   async headers() {
     return [
       {
