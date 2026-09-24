@@ -1,5 +1,5 @@
 export async function verifyTurnstileToken(token: string, ip: string): Promise<boolean> {
-  const secretKey = process.env.TURNSTILE_SECRET_KEY!;
+  const secretKey = process.env.TURNSTILE_SECRET_KEY || "placeholder";
 
   const formData = new FormData();
   formData.append("secret", secretKey);
