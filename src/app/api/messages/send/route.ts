@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { strictLimiter } from "@/lib/ratelimit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
-// Validasi input + sanitasi karakter berbahaya (Anti-XSS & HTML Injection)
 const sendMessageSchema = z.object({
   conversationId: z.string().uuid(),
   content: z
@@ -25,7 +24,6 @@ const sendMessageSchema = z.object({
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
 
-  // 1. Rate Limiting Check
   const { success: rateLimitSuccess } = await strictLimiter.limit(`msg_${ip}`);
   if (!rateLimitSuccess) {
     return NextResponse.json(
@@ -38,7 +36,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsedData = sendMessageSchema.parse(body);
 
-    // 2. Turnstile Bot Check
     const isHuman = await verifyTurnstileToken(parsedData.turnstileToken, ip);
     if (!isHuman) {
       return NextResponse.json(
@@ -47,7 +44,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Auth Check via Supabase
     const supabase = await createClient();
     const {
       data: { user },
@@ -58,7 +54,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 4. Database Insert
     const { data, error: dbError } = await supabase
       .from("messages")
       .insert({
